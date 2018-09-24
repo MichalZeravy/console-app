@@ -5,7 +5,10 @@
 
 int main()
 {
+	char c;
 	std::cout << "Hello World!" << std::endl;
+	std::cin >> c;
+	std::cout << c << std::endl;
 
 	return 0;
 }
