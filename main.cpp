@@ -11,7 +11,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-	int n,it;
+	int n;
 	string str, line;
 	FILE* subor;
 	if (argc == 1)
