@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <iterator>
+#include "Counter.h"
 
 using namespace std;
 
@@ -12,6 +13,7 @@ int main(int argc, char *argv[])
 {
 	int n,it;
 	string str, line;
+	FILE* subor;
 	if (argc == 1)
 		cout << "Nebol zadany ziaden parameter";
 	if (argc == 2)
@@ -19,30 +21,21 @@ int main(int argc, char *argv[])
 		if ("-c" == (string)argv[argc - 1])
 		{
 			getline(cin, str);
-			n = str.length();
-			cout <<"Pocet znakov je: "<< n << endl;
+			cout <<"Pocet znakov je: "<< counterznak(str) << endl;
 			//std::istream s(std::string(argv[1]));
 			//std::istream_iterator<char> it = s->begin();
 		}
 
 		if ("-w" == (string)argv[argc - 1])
 		{
-			int s=0;
 			getline(cin, str);
-			n = str.length();
-			for (int i = 0; i < n-1; i++)
-				if (isspace(str[i]))
-					s++;
-			if (s == 0 && isalpha(str[0]))
-				s = 1;
-
-			cout <<"Pocet slov je: "<< s;
-
-
+		
+			cout <<"Pocet slov je: "<< counterword(str);
 		}
-		//funkcnost plus nastudovat ako nacitavat viacej riadkov 
+	
 		if ("-l" == (string)argv[argc - 1])
 		{
+			
 			int s = 0;
 			while (getline(cin, line)) 
 			{
