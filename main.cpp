@@ -12,8 +12,8 @@ using namespace std;
 int main(int argc, char *argv[])
 {
 	int n;
-	string str, line;
-	FILE* subor;
+	string str, str1, str2, line;
+
 	if (argc == 1)
 		cout << "Nebol zadany ziaden parameter";
 	if (argc == 2)
@@ -22,15 +22,14 @@ int main(int argc, char *argv[])
 		{
 			getline(cin, str);
 			cout <<"Pocet znakov je: "<< counterznak(str) << endl;
-			//std::istream s(std::string(argv[1]));
-			//std::istream_iterator<char> it = s->begin();
+			
 		}
 
 		if ("-w" == (string)argv[argc - 1])
 		{
 			getline(cin, str);
 		
-			cout <<"Pocet slov je: "<< counterword(str);
+			cout <<"Pocet slov je: "<< counterword(str) << endl;
 		}
 	
 		if ("-l" == (string)argv[argc - 1])
@@ -43,11 +42,37 @@ int main(int argc, char *argv[])
 				if (line == "^")
 					break;
 
-				str+= " " + line;
+				str+= '\n' + line;
 			}
-			cout << "Pocet riadkov je:" << s <<endl;
+			cout << "Pocet riadkov je:" << counterline(str) <<endl;
 		}
 			
+	}
+	
+	if (argc == 3)
+	{
+		fstream subor((string)argv[argc - 1]);
+		while (!subor.eof())
+		{
+			getline(subor, str1);
+			str2 = str2 + '\n' + str1;
+		}
+
+		if ("-c" == (string)argv[argc - 2])
+		{
+			cout << "Pocet znakov je: " << counterznak(str2) << endl;
+		}
+
+		if ("-w" == (string)argv[argc - 2])
+		{
+			cout << "Pocet slov je: " << counterword(str2)-1 << endl;
+		}
+
+		if ("-l" == (string)argv[argc - 2])
+		{
+			cout << "Pocet riadkov je:" << counterline(str2) << endl;
+		}
+
 	}
 	system("pause");
 	
