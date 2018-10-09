@@ -60,17 +60,17 @@ int main(int argc, char *argv[])
 
 		if ("-c" == (string)argv[argc - 2])
 		{
-			cout << "Pocet znakov je: " << counterznak(str2) << endl;
+			cout << "Pocet znakov je: " << spocitaj<_char>(str2) << endl;
 		}
 
 		if ("-w" == (string)argv[argc - 2])
 		{
-			cout << "Pocet slov je: " << counterword(str2)-1 << endl;
+			cout << "Pocet slov je: " << spocitaj<_word>(str2)-1 << endl;
 		}
 
 		if ("-l" == (string)argv[argc - 2])
 		{
-			cout << "Pocet riadkov je:" << counterline(str2) << endl;
+			cout << "Pocet riadkov je:" << spocitaj<_line>(str2) << endl;
 		}
 
 	}
