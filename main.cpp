@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 		if ("-c" == (string)argv[argc - 1])
 		{
 			getline(cin, str);
-			cout <<"Pocet znakov je: "<< counterznak(str) << endl;
+			cout <<"Pocet znakov je: "<< spocitaj<_char>(str) << endl;
 			
 		}
 
@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 		{
 			getline(cin, str);
 		
-			cout <<"Pocet slov je: "<< counterword(str) << endl;
+			cout <<"Pocet slov je: "<< spocitaj<_word>(str) << endl;
 		}
 	
 		if ("-l" == (string)argv[argc - 1])
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
 				str+= '\n' + line;
 			}
-			cout << "Pocet riadkov je:" << counterline(str) <<endl;
+			cout << "Pocet riadkov je:" << spocitaj<_line>(str) <<endl;
 		}
 			
 	}

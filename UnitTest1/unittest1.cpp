@@ -2,7 +2,7 @@
 #define CATCH_CONFIG_MAIN
 #include "include/catch.hpp"
 #include <string>
-#include "C:/Users/Michal/Source/Repos/console-app/Counter.h"
+#include "../Counter.h"
 
 using namespace std;
 
