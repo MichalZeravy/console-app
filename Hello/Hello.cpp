@@ -1,6 +1,6 @@
 #include <iostream>
-#include <windows.h>
 #include <tchar.h>
+#include <afxdlgs.h>
 
 static TCHAR szWindowClass[] = _T("DesktopApp");
 
@@ -77,10 +77,14 @@ int CALLBACK WinMain(
 		nCmdShow);
 	UpdateWindow(hWnd);
 
+	
+	CFileDialog okno(TRUE);
 	// Main message loop:
 	MSG msg;
+	//okno(TRUE);
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
+		
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -93,11 +97,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	PAINTSTRUCT ps;
 	HDC hdc;
 	TCHAR greeting[] = _T("Hello, Windows desktop!");
-
+	
+	
 	switch (message)
 	{
 	case WM_PAINT:
 		hdc = BeginPaint(hWnd, &ps);
+
 
 		// Here your application is laid out.
 		// For this introduction, we just print out "Hello, Windows desktop!"
