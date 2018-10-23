@@ -46,6 +46,9 @@ protected:
 	BOOL OnInitDialog() override;
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
+	CString path_name;
+	CBitmap bitmap;
+	CImage *image = nullptr;
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 

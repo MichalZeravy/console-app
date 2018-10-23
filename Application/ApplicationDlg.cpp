@@ -45,7 +45,11 @@ protected:
 // Implementation
 protected:
 	DECLARE_MESSAGE_MAP()
+	
+
 };
+
+
 
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
@@ -93,6 +97,8 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 	CDC * pDC = CDC::FromHandle(lpDI->hDC);
 
 	//DRAW BITMAP
+	
+
 	return S_OK;
 }
 
@@ -165,22 +171,76 @@ void CApplicationDlg::OnPaint()
 	if (IsIconic())
 	{
 		CPaintDC dc(this); // device context for painting
-
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
 		// Center icon in client rectangle
-		int cxIcon = GetSystemMetrics(SM_CXICON);
-		int cyIcon = GetSystemMetrics(SM_CYICON);
+		int cx_icon = GetSystemMetrics(SM_CXICON);
+		int cy_icon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
-		GetClientRect(&rect);
-		int x = (rect.Width() - cxIcon + 1) / 2;
-		int y = (rect.Height() - cyIcon + 1) / 2;
-
+		GetClientRect(&rect);		
+		int x = (rect.Width() - cx_icon + 1) / 2;
+		int y = (rect.Height() - cy_icon + 1) / 2;
+		
 		// Draw the icon
-		dc.DrawIcon(x, y, m_hIcon);
+		dc.DrawIcon(x,y, m_hIcon);
 	}
 	else
 	{
+		int cx_icon = GetSystemMetrics(SM_CXICON);
+		int cy_icon = GetSystemMetrics(SM_CYICON);
+		CRect rect;
+		GetClientRect(&rect);
+		int app_x = (rect.Width() - cx_icon + 1) / 2;
+		int app_y = (rect.Height() - cy_icon + 1) / 2;
+		
+		if (image)
+		{
+			int img_x = image->GetWidth();
+			int img_y = image->GetHeight();
+
+
+
+
+
+			float factor = 1;
+			if ((img_x <= app_x) && (img_y <= app_y)) {
+				if (app_x > app_y) {
+					factor = (float)app_y / (float)img_y;
+				}
+				else {
+					factor = (float)app_x / (float)img_x;
+				}
+			}
+			if ((img_x <= app_x) && (img_y > app_y)) {
+				factor = (float)app_y / (float)img_y;
+			}
+			if ((img_x > app_x) && (img_y <= app_y)) {
+				factor = (float)app_x / (float)img_x;
+			}
+			if ((img_x > app_x) && (img_y > app_y)) {
+				if (img_x > img_y) {
+					factor = (float)app_y / (float)img_y;
+				}
+				else {
+					factor = (float)app_x / (float)img_x;
+				}
+			}
+
+			CDC *screenDC = GetDC();
+			CDC mDC;
+			mDC.CreateCompatibleDC(screenDC);
+			bitmap.CreateCompatibleBitmap(screenDC, img_x * factor, img_y * factor);
+
+			CBitmap *p_bitmap = mDC.SelectObject(&bitmap);
+			mDC.SetStretchBltMode(HALFTONE);
+			image->StretchBlt(mDC.m_hDC, 0, 0, img_x * factor, img_y * factor, 0, 0, img_x, img_y, SRCCOPY);
+			mDC.SelectObject(p_bitmap);
+
+			m_ctrlImage.SetBitmap((HBITMAP)bitmap.Detach());
+			ReleaseDC(screenDC);
+
+		}
+		
 		CDialogEx::OnPaint();
 	}
 }
@@ -197,61 +257,11 @@ void CApplicationDlg::OnFileOpen()
 	CFileDialog file_dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Jpg Files (*.jpg)|*.jpg|Png Files (*.png)|*.png||"));
 
 	if (file_dlg.DoModal() == IDOK) {
-		CString path_name = file_dlg.GetPathName();
-
+		path_name = file_dlg.GetPathName();
+		image=new CImage();
+		image->Load(path_name);//dorobit destrukciu smernika 
+		OnPaint();
 		SetWindowText(file_dlg.GetFileTitle());
-
-		CRect rect;
-		GetClientRect(&rect);
-		int cx_icon = GetSystemMetrics(SM_CXICON);
-		int cy_icon = GetSystemMetrics(SM_CYICON);
-		int app_x = (rect.Width() - cx_icon + 1) / 2;
-		int app_y = (rect.Height() - cy_icon + 1) / 2;
-
-		// nacitanie obrazku
-		CImage image;
-		image.Load(path_name);
-		int img_x = image.GetWidth();
-		int img_y = image.GetHeight();
-
-
-		float factor = 1;
-		if ((img_x <= app_x) && (img_y <= app_y)) {
-			if (app_x > app_y) {
-				factor = (float)app_y / (float)img_y;
-			}
-			else {
-				factor = (float)app_x / (float)img_x;
-			}
-		}
-		if ((img_x <= app_x) && (img_y > app_y)) {
-			factor = (float)app_y / (float)img_y;
-		}
-		if ((img_x > app_x) && (img_y <= app_y)) {
-			factor = (float)app_x / (float)img_x;
-		}
-		if ((img_x > app_x) && (img_y > app_y)) {
-			if (img_x > img_y) {
-				factor = (float)app_y / (float)img_y;
-			}
-			else {
-				factor = (float)app_x / (float)img_x;
-			}
-		}
-
-		CDC *screenDC = GetDC();
-		CDC mDC;
-		mDC.CreateCompatibleDC(screenDC);
-		CBitmap bitmap;
-		bitmap.CreateCompatibleBitmap(screenDC, img_x * factor, img_y * factor);
-
-		CBitmap *p_bitmap = mDC.SelectObject(&bitmap);
-		mDC.SetStretchBltMode(HALFTONE);
-		image.StretchBlt(mDC.m_hDC, 0, 0, img_x * factor, img_y * factor, 0, 0, img_x, img_y, SRCCOPY);
-		mDC.SelectObject(p_bitmap);
-
-		m_ctrlImage.SetBitmap((HBITMAP)bitmap.Detach());
-		ReleaseDC(screenDC);
 	}
 	else {
 		::MessageBox(NULL, __T("Chyba pri zobrazeni file dialogu."), __T("Error"), MB_OK);
