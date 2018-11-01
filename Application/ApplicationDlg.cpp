@@ -9,6 +9,7 @@
 #include <utility>
 #include <tuple>
 #include <vector>
+#include <Gdiplus.h>
 
 
 #ifdef _DEBUG
@@ -97,8 +98,25 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 	CDC * pDC = CDC::FromHandle(lpDI->hDC);
 
 	//DRAW BITMAP
-	
+	if (m_pImage != nullptr) {
 
+		CBitmap bmp;
+		CDC bmDC;
+		CBitmap *pOldbmp;
+		BITMAP  bi;
+
+		bmp.Attach(m_pImage->Detach());
+		bmDC.CreateCompatibleDC(pDC);
+
+		CRect r(lpDI->rcItem);
+
+		pOldbmp = bmDC.SelectObject(&bmp);
+		bmp.GetBitmap(&bi);
+		pDC->BitBlt(0, 0, r.Width(), r.Height(), &bmDC, 0, 0, SRCCOPY);
+		bmDC.SelectObject(pOldbmp);
+		return S_OK;
+	}
+	
 	return S_OK;
 }
 
@@ -186,63 +204,10 @@ void CApplicationDlg::OnPaint()
 	}
 	else
 	{
-		int cx_icon = GetSystemMetrics(SM_CXICON);
-		int cy_icon = GetSystemMetrics(SM_CYICON);
-		CRect rect;
-		GetClientRect(&rect);
-		int app_x = (rect.Width() - cx_icon + 1) / 2;
-		int app_y = (rect.Height() - cy_icon + 1) / 2;
-		
-		if (image)
-		{
-			int img_x = image->GetWidth();
-			int img_y = image->GetHeight();
-
-
-
-
-
-			float factor = 1;
-			if ((img_x <= app_x) && (img_y <= app_y)) {
-				if (app_x > app_y) {
-					factor = (float)app_y / (float)img_y;
-				}
-				else {
-					factor = (float)app_x / (float)img_x;
-				}
-			}
-			if ((img_x <= app_x) && (img_y > app_y)) {
-				factor = (float)app_y / (float)img_y;
-			}
-			if ((img_x > app_x) && (img_y <= app_y)) {
-				factor = (float)app_x / (float)img_x;
-			}
-			if ((img_x > app_x) && (img_y > app_y)) {
-				if (img_x > img_y) {
-					factor = (float)app_y / (float)img_y;
-				}
-				else {
-					factor = (float)app_x / (float)img_x;
-				}
-			}
-
-			CDC *screenDC = GetDC();
-			CDC mDC;
-			mDC.CreateCompatibleDC(screenDC);
-			bitmap.CreateCompatibleBitmap(screenDC, img_x * factor, img_y * factor);
-
-			CBitmap *p_bitmap = mDC.SelectObject(&bitmap);
-			mDC.SetStretchBltMode(HALFTONE);
-			image->StretchBlt(mDC.m_hDC, 0, 0, img_x * factor, img_y * factor, 0, 0, img_x, img_y, SRCCOPY);
-			mDC.SelectObject(p_bitmap);
-
-			m_ctrlImage.SetBitmap((HBITMAP)bitmap.Detach());
-			ReleaseDC(screenDC);
-
-		}
-		
 		CDialogEx::OnPaint();
+
 	}
+		
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
@@ -254,14 +219,25 @@ HCURSOR CApplicationDlg::OnQueryDragIcon()
 
 void CApplicationDlg::OnFileOpen()
 {
+	if (m_pImage!=nullptr)
+	{
+		delete m_pImage;
+		m_pImage = nullptr;
+	}
 	CFileDialog file_dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Jpg Files (*.jpg)|*.jpg|Png Files (*.png)|*.png||"));
 
 	if (file_dlg.DoModal() == IDOK) {
 		path_name = file_dlg.GetPathName();
-		image=new CImage();
-		image->Load(path_name);//dorobit destrukciu smernika 
-		OnPaint();
 		SetWindowText(file_dlg.GetFileTitle());
+		m_pImage =new CImage();
+		if (m_pImage->Load(path_name))
+		{
+			delete m_pImage;
+			m_pImage = nullptr;
+		}
+
+		Invalidate();
+		
 	}
 	else {
 		::MessageBox(NULL, __T("Chyba pri zobrazeni file dialogu."), __T("Error"), MB_OK);

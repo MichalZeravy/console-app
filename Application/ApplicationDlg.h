@@ -3,8 +3,8 @@
 //
 
 #pragma once
-
-#include <GdiPlus.h>
+#pragma comment( lib, "gdiplus.lib" ) 
+#include <Gdiplus.h>
 
 class CStaticImage : public CStatic
 {
@@ -47,8 +47,7 @@ protected:
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	CString path_name;
-	CBitmap bitmap;
-	CImage *image = nullptr;
+	CImage *m_pImage = nullptr;
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 
