@@ -50,7 +50,15 @@ protected:
 
 };
 
+void CApplicationDlg::OnSize(UINT nType, int cx, int cy)
+{
+	Invalidate();
+	__super::OnSize(nType,cx,cy);
+	CWnd *pWnd;
 
+	if (m_ctrlImage)
+		m_ctrlImage.MoveWindow(CRect(0,0,cx,cy));
+}
 
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
@@ -107,13 +115,17 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
-
+		
 		CRect r(lpDI->rcItem);
 
 		pOldbmp = bmDC.SelectObject(&bmp);
 		bmp.GetBitmap(&bi);
-		pDC->BitBlt(0, 0, r.Width(), r.Height(), &bmDC, 0, 0, SRCCOPY);
+		pDC->StretchBlt(0, 0, r.Width(), r.Height(), &bmDC, 0, 0, bi.bmWidth, bi.bmHeight, SRCCOPY);
 		bmDC.SelectObject(pOldbmp);
+		m_pImage->Attach((HBITMAP)bmp.Detach());
+		
+		/*skalovanie */
+		
 		return S_OK;
 	}
 	
