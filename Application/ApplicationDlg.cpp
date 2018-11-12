@@ -120,17 +120,60 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		pOldbmp = bmDC.SelectObject(&bmp);
 		bmp.GetBitmap(&bi);
-		pDC->StretchBlt(0, 0, r.Width(), r.Height(), &bmDC, 0, 0, bi.bmWidth, bi.bmHeight, SRCCOPY);
-		bmDC.SelectObject(pOldbmp);
-		m_pImage->Attach((HBITMAP)bmp.Detach());
+		
 		
 		/*skalovanie */
-		
+
+		float fw = 1.;
+		float fh = 1.;
+		float f = 1.;
+
+		fh = (float)r.Height() / (float)bi.bmHeight;
+		fw = (float)r.Width() / (float)bi.bmWidth;
+
+		int r_x = r.Width(); 
+		int r_y = r.Height();
+		float tmp_x = 0; 
+		float tmp_y = 0;
+
+		if ((bi.bmWidth > r.Width()) && (bi.bmHeight <= r.Height()))
+		{
+			tmp_x = (float)bi.bmWidth*((float)bi.bmWidth / (float)r_x);
+			tmp_y = (float)bi.bmHeight*((float)bi.bmWidth / (float)r_x);
+		}
+		if ((bi.bmHeight > r.Height()) && (bi.bmWidth <= r.Width()))
+		{
+			tmp_x = (float)bi.bmWidth*((float)bi.bmHeight / (float)r_y);
+			tmp_y = (float)bi.bmHeight*((float)bi.bmHeight / (float)r_y);
+		}
+
+		if (((bi.bmWidth < r.Width()) && (bi.bmHeight < r.Height())) || ((bi.bmWidth > r.Width()) && (bi.bmHeight > r.Height())))
+		{
+			if (r.Height() > r.Width())
+			{
+				tmp_x = (float)bi.bmWidth*((float)bi.bmWidth / (float)r_x);
+				tmp_y = (float)bi.bmHeight*((float)bi.bmWidth / (float)r_x);
+			}
+			else
+			{
+				tmp_x = (float)bi.bmWidth*((float)bi.bmHeight / (float)r_y);
+				tmp_y = (float)bi.bmHeight*((float)bi.bmHeight / (float)r_y);
+			}
+		}
+		int m_x = m_ptImage.x;
+		int m_y = m_ptImage.y;
+
+		pDC->SetStretchBltMode(HALFTONE);
+		pDC->StretchBlt(0, 0, r.Width(), r.Height(), &bmDC, 0, 0, tmp_x*fw, tmp_y*fh, SRCCOPY);
+		bmDC.SelectObject(pOldbmp);
+		m_pImage->Attach((HBITMAP)bmp.Detach());
+
 		return S_OK;
 	}
-	
-	return S_OK;
+
 }
+		
+
 
 void CApplicationDlg::OnClose()
 {
