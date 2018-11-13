@@ -228,7 +228,6 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 void CApplicationDlg::OnClose()
 {
 
-
 	EndDialog(0);
 }
 
@@ -364,6 +363,14 @@ void CApplicationDlg::OnUpdateFileOpen(CCmdUI *pCmdUI)
 void CApplicationDlg::OnFileClose()
 {
 
+	
+	if (m_pImage != nullptr)
+	{
+		delete m_pImage;
+		m_pImage = nullptr;
+	}
+
+	Invalidate();
 }
 
 
