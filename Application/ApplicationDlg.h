@@ -57,6 +57,9 @@ protected:
 	CImage *m_pImage = nullptr;
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+	int *m_pRedcolor;
+	int *m_pGreencolor;
+	int *m_pBluecolor;
 
 public:
 	afx_msg void OnFileOpen();

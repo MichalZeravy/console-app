@@ -122,6 +122,8 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 		CDC bmDC;
 		CBitmap *pOldbmp;
 		BITMAP  bi;
+	    
+	
 
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
@@ -130,7 +132,30 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		pOldbmp = bmDC.SelectObject(&bmp);
 		bmp.GetBitmap(&bi);
+
+		int h = bi.bmHeight;
+		int w = bi.bmWidth;
+
+		m_pRedcolor = new int[(h*w)];
+		m_pGreencolor = new int[(h*w)];
+		m_pBluecolor = new int[(h*w)];
+		COLORREF ccolor = 0;
+		BYTE bcolor;
 		
+
+		for (int i = 0; i <= bi.bmWidth; i++)
+			for (int j = 0; j <= bi.bmHeight; j++)
+			{// Here you get the RGB value
+				ccolor = GetPixel(bmDC, i, j);
+				// In this way you get one byte for each color
+				bcolor = GetRValue(ccolor);
+				m_pRedcolor[i + (bi.bmWidth + 2)*j] = (int) bcolor;
+				bcolor = GetGValue(ccolor);
+				m_pGreencolor[i + (bi.bmWidth + 2)*j] = (int)bcolor;
+				bcolor = GetBValue(ccolor);
+				m_pBluecolor[i + (bi.bmWidth + 2)*j] = (int)bcolor;
+			}
+
 		
 		/*skalovanie */
 
