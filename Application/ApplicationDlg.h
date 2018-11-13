@@ -13,6 +13,13 @@ public:
 	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
 };
 
+class CStaticHistogram : public CStatic
+{
+public:
+	// Overridables (for owner draw only)
+	void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
+};
+
 // CApplicationDlg dialog
 class CApplicationDlg : public CDialogEx
 {
@@ -62,5 +69,7 @@ public:
 	afx_msg void OnDestroy();
 protected:
 	CStaticImage m_ctrlImage;
+	CStaticHistogram m_ctrlHistogram;
+	CPoint m_ptHistogram;
 	CPoint m_ptImage;
 };

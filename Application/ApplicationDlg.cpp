@@ -25,6 +25,11 @@ void CStaticImage::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 	GetParent()->SendMessage( CApplicationDlg::WM_DRAW_IMAGE, (WPARAM)lpDrawItemStruct);
 }
 
+void CStaticHistogram::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
+{
+	GetParent()->SendMessage(CApplicationDlg::WM_DRAW_HISTOGRAM, (WPARAM)lpDrawItemStruct);
+}
+
 // CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx
@@ -57,7 +62,10 @@ void CApplicationDlg::OnSize(UINT nType, int cx, int cy)
 	CWnd *pWnd;
 
 	if (m_ctrlImage)
-		m_ctrlImage.MoveWindow(CRect(0,0,cx,cy));
+		m_ctrlImage.MoveWindow(CRect((cx*0.2),0,cx,cy));
+
+	if (m_ctrlHistogram)
+		m_ctrlHistogram.MoveWindow(CRect(0, (cy*0.5), (cx*0.2), cy));
 }
 
 
@@ -76,6 +84,7 @@ void CApplicationDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_IMAGE, m_ctrlImage);
+	DDX_Control(pDX, IDC_HISTOGRAM, m_ctrlHistogram);
 }
 
 BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
@@ -90,6 +99,7 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_WM_SIZE()
 	ON_WM_SIZING()
 	ON_MESSAGE(WM_DRAW_IMAGE, OnDrawImage)
+	ON_MESSAGE(WM_DRAW_HISTOGRAM, OnDrawImage)
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
@@ -218,6 +228,10 @@ BOOL CApplicationDlg::OnInitDialog()
 	m_ctrlImage.GetWindowRect(&rct);
 	m_ptImage.x = rctClient.Width() - rct.Width();
 	m_ptImage.y = rctClient.Height() - rct.Height();
+
+	m_ctrlHistogram.GetWindowRect(&rct);
+	m_ptHistogram.x = rctClient.Width() - rct.Width();
+	m_ptHistogram.y = rctClient.Height() - rct.Height();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
