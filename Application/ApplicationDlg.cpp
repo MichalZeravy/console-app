@@ -19,6 +19,7 @@
 #ifndef MIN_SIZE
 #define MIN_SIZE 300
 #endif
+using namespace std;
 
 void CStaticImage::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
@@ -117,90 +118,38 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 	//DRAW BITMAP
 	if (m_pImage != nullptr) {
-
 		CBitmap bmp;
 		CDC bmDC;
 		CBitmap *pOldbmp;
 		BITMAP  bi;
-	    
-	
 
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
-		
+
 		CRect r(lpDI->rcItem);
 
 		pOldbmp = bmDC.SelectObject(&bmp);
 		bmp.GetBitmap(&bi);
 
-		int h = bi.bmHeight;
-		int w = bi.bmWidth;
+		pDC->FillSolidRect(r.left, r.top, r.Width(), r.Height(), RGB(255, 255, 255));
 
-		m_pRedcolor = new int[(h*w)];
-		m_pGreencolor = new int[(h*w)];
-		m_pBluecolor = new int[(h*w)];
-		COLORREF ccolor = 0;
-		BYTE bcolor;
-		
+		double dWtoH = (double)bi.bmWidth / (double)bi.bmHeight;
+		UINT nHeight = r.Height();
+		UINT nWidth = (UINT)(dWtoH * (double)nHeight);
 
-		for (int i = 0; i <= bi.bmWidth; i++)
-			for (int j = 0; j <= bi.bmHeight; j++)
-			{// Here you get the RGB value
-				ccolor = GetPixel(bmDC, i, j);
-				// In this way you get one byte for each color
-				bcolor = GetRValue(ccolor);
-				m_pRedcolor[i + (bi.bmWidth + 2)*j] = (int) bcolor;
-				bcolor = GetGValue(ccolor);
-				m_pGreencolor[i + (bi.bmWidth + 2)*j] = (int)bcolor;
-				bcolor = GetBValue(ccolor);
-				m_pBluecolor[i + (bi.bmWidth + 2)*j] = (int)bcolor;
-			}
-
-		
-		/*skalovanie */
-
-		float fw = 1.;
-		float fh = 1.;
-		float f = 1.;
-
-		fh = (float)r.Height() / (float)bi.bmHeight;
-		fw = (float)r.Width() / (float)bi.bmWidth;
-
-		int r_x = r.Width(); 
-		int r_y = r.Height();
-		float tmp_x = 0; 
-		float tmp_y = 0;
-
-		if ((bi.bmWidth > r.Width()) && (bi.bmHeight <= r.Height()))
+		if (nWidth > (UINT)r.Width())
 		{
-			tmp_x = (float)bi.bmWidth*((float)bi.bmWidth / (float)r_x);
-			tmp_y = (float)bi.bmHeight*((float)bi.bmWidth / (float)r_x);
+			nWidth = r.Width();
+			nHeight = (UINT)(nWidth / dWtoH);
+			_ASSERTE(nHeight <= (UINT)r.Height());
 		}
-		if ((bi.bmHeight > r.Height()) && (bi.bmWidth <= r.Width()))
-		{
-			tmp_x = (float)bi.bmWidth*((float)bi.bmHeight / (float)r_y);
-			tmp_y = (float)bi.bmHeight*((float)bi.bmHeight / (float)r_y);
-		}
-
-		if (((bi.bmWidth < r.Width()) && (bi.bmHeight < r.Height())) || ((bi.bmWidth > r.Width()) && (bi.bmHeight > r.Height())))
-		{
-			if (r.Height() > r.Width())
-			{
-				tmp_x = (float)bi.bmWidth*((float)bi.bmWidth / (float)r_x);
-				tmp_y = (float)bi.bmHeight*((float)bi.bmWidth / (float)r_x);
-			}
-			else
-			{
-				tmp_x = (float)bi.bmWidth*((float)bi.bmHeight / (float)r_y);
-				tmp_y = (float)bi.bmHeight*((float)bi.bmHeight / (float)r_y);
-			}
-		}
-		int m_x = m_ptImage.x;
-		int m_y = m_ptImage.y;
 
 		pDC->SetStretchBltMode(HALFTONE);
-		pDC->StretchBlt(0, 0, r.Width(), r.Height(), &bmDC, 0, 0, tmp_x*fw, tmp_y*fh, SRCCOPY);
+
+		pDC->StretchBlt(r.left + (r.Width() - nWidth) / 2, r.top + (r.Height() - nHeight) / 2, nWidth, nHeight, &bmDC, 0, 0, bi.bmWidth, bi.bmHeight, SRCCOPY);
 		bmDC.SelectObject(pOldbmp);
+
+
 		m_pImage->Attach((HBITMAP)bmp.Detach());
 
 		return S_OK;
@@ -208,6 +157,39 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 }
 		
+void CApplicationDlg::vypocet_histogram(int h, int w, CDC *bmDC)
+{
+	if (m_pImage != nullptr) {
+
+		int *Redcolor = new int[(h*w)];
+		int *Greencolor = new int[(h*w)];
+		int *Bluecolor = new int[(h*w)];
+		COLORREF ccolor = 0;
+		BYTE bcolor;
+		
+		for (int i = 0; i < w; i++)
+			for (int j = 0; j < h; j++)
+			{// Here you get the RGB value
+				ccolor=m_pImage->GetPixel(i, j);
+				// In this way you get one byte for each color
+				bcolor = GetRValue(ccolor);
+				Redcolor[(w*j)+i] = (int)bcolor;
+				bcolor = GetGValue(ccolor);
+				Greencolor[(w*j) + i] = (int)bcolor;
+				bcolor = GetBValue(ccolor);
+				Bluecolor[(w*j) + i] = (int)bcolor;
+
+			}
+
+		for (int i = 0; i < h*w; i++)
+		{
+			m_histogramR[Redcolor[i]]++;
+			m_histogramG[Greencolor[i]]++;
+			m_histogramB[Bluecolor[i]]++;
+		}
+		
+	}
+}
 
 LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 {
@@ -217,17 +199,73 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 
 	//DRAW BITMAP
 	if (m_pImage != nullptr) {
-
-		CRect rect(lpDI->rcItem);
-		CBrush brush;
-		brush.CreateSolidBrush(RGB(0, 0, 151));
-
-		pDC->FillRect(&rect, &brush);
-
-		DeleteObject(brush);
-
+		
+		CBitmap bmp;
 		CDC bmDC;
+		BITMAP  bi;
+		CRect rect(lpDI->rcItem);
+		float maxr, maxg, maxb, maxh=0;
+		float sx, sy;
 
+		bmp.Attach(m_pImage->Detach());
+		bmDC.CreateCompatibleDC(pDC);
+		bmp.GetBitmap(&bi);
+		m_pImage->Attach((HBITMAP)bmp.Detach());
+
+		vypocet_histogram(bi.bmHeight, bi.bmWidth, &bmDC);
+
+		CPen penr(PS_SOLID, 1, RGB(255, 0, 0));
+		CPen peng(PS_SOLID, 1, RGB(0, 255, 0));
+		CPen penb(PS_SOLID, 1, RGB(0, 0, 255));
+		
+		maxr = m_histogramR[0];
+		maxg = m_histogramG[0];
+		maxb = m_histogramB[0];
+	
+		for (int i = 0; i <=255; i++)
+			{
+				if (maxr < m_histogramR[i])
+					maxr = m_histogramR[i];
+
+				if (maxg < m_histogramG[i])
+					maxg = m_histogramG[i];
+
+				if (maxb < m_histogramB[i])
+					maxb = m_histogramB[i];
+			}
+		if ((maxh < maxr) || (maxh < maxg) || (maxh < maxb))
+		{
+			maxh = maxr;
+			if (maxh < maxg)
+				maxh = maxg;
+
+			if (maxh < maxb)
+				maxh = maxb;
+		}
+	
+		sx =(float) rect.Width()/256 ;
+		sy = (float) rect.Height() / maxh;
+
+		pDC->SelectObject(&penr);
+		pDC->MoveTo(0, 0);
+		pDC->LineTo(sx*100 ,sy*100);
+
+		for (int i = 0; i < 255; i++)
+		{
+			pDC->SelectObject(&penr);
+			pDC->MoveTo(sx*i, rect.Height() - sy * m_histogramR[i]);
+			pDC->LineTo(sx*(i+1),rect.Height() - sy *m_histogramR[i+1]);
+
+			pDC->SelectObject(&peng);
+			pDC->MoveTo(sx*i, rect.Height() - sy * m_histogramG[i]);
+			pDC->LineTo(sx*(i + 1), rect.Height() - sy * m_histogramG[i + 1]);
+
+			pDC->SelectObject(&penb);
+			pDC->MoveTo(sx*i, rect.Height() - sy * m_histogramB[i]);
+			pDC->LineTo(sx*(i + 1), rect.Height() - sy * m_histogramB[i + 1]);
+		}
+		
+		
 	}
 	else
 	{
@@ -239,14 +277,10 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 
 		DeleteObject(brush);
 
-		CDC bmDC;
 	}
 	
-		
 
 		return S_OK;
-	
-
 }
 
 
