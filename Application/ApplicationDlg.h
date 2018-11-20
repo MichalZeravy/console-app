@@ -71,7 +71,9 @@ public:
 	afx_msg LRESULT OnDrawHistogram(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnDestroy();
-	void vypocet_histogram(int h, int w, CDC *bmDC);
+	void vypocet_histogram(int h, int w);
+	void draw_histogram(COLORREF color, float sx, float sy, int *pole, CDC *pDC, CRect rect);
+
 protected:
 	CStaticImage m_ctrlImage;
 	CStaticHistogram m_ctrlHistogram;

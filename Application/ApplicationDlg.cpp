@@ -157,7 +157,7 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 }
 		
-void CApplicationDlg::vypocet_histogram(int h, int w, CDC *bmDC)
+void CApplicationDlg::vypocet_histogram(int h, int w)
 {
 	if (m_pImage != nullptr) {
 
@@ -191,6 +191,16 @@ void CApplicationDlg::vypocet_histogram(int h, int w, CDC *bmDC)
 	}
 }
 
+void CApplicationDlg::draw_histogram(COLORREF color, float sx, float sy, int *pole, CDC *pDC, CRect rect)
+{
+		
+	for (int i = 0; i < 255; i++)
+	{
+		pDC->FillSolidRect(sx*i,rect.Height()-sy*pole[i],1,sy*pole[i], color);	
+
+	}
+}
+
 LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 {
 	LPDRAWITEMSTRUCT lpDI = (LPDRAWITEMSTRUCT)wParam;
@@ -205,15 +215,16 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		BITMAP  bi;
 		CRect rect(lpDI->rcItem);
 		float maxr, maxg, maxb, maxh=0;
-		float sx, sy;
+		float sx, syr,syb,syg;
 
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
 		bmp.GetBitmap(&bi);
 		m_pImage->Attach((HBITMAP)bmp.Detach());
 
-		vypocet_histogram(bi.bmHeight, bi.bmWidth, &bmDC);
+		
 
+		
 		CPen penr(PS_SOLID, 1, RGB(255, 0, 0));
 		CPen peng(PS_SOLID, 1, RGB(0, 255, 0));
 		CPen penb(PS_SOLID, 1, RGB(0, 0, 255));
@@ -222,7 +233,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		maxg = m_histogramG[0];
 		maxb = m_histogramB[0];
 	
-		for (int i = 0; i <=255; i++)
+		for (int i = 0; i <255; i++)
 			{
 				if (maxr < m_histogramR[i])
 					maxr = m_histogramR[i];
@@ -233,7 +244,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 				if (maxb < m_histogramB[i])
 					maxb = m_histogramB[i];
 			}
-		if ((maxh < maxr) || (maxh < maxg) || (maxh < maxb))
+		/*if ((maxh < maxr) || (maxh < maxg) || (maxh < maxb))
 		{
 			maxh = maxr;
 			if (maxh < maxg)
@@ -241,30 +252,20 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 
 			if (maxh < maxb)
 				maxh = maxb;
-		}
+		}*/
 	
 		sx =(float) rect.Width()/256 ;
-		sy = (float) rect.Height() / maxh;
+		syr = (float) rect.Height() / maxr;
+		syg = (float)rect.Height() / maxg;
+		syb = (float)rect.Height() / maxb;
 
-		pDC->SelectObject(&penr);
-		pDC->MoveTo(0, 0);
-		pDC->LineTo(sx*100 ,sy*100);
+		COLORREF red=RGB(255, 0, 0);
+		COLORREF green=RGB(0, 255, 0);
+		COLORREF blue=RGB(0, 0, 255);
 
-		for (int i = 0; i < 255; i++)
-		{
-			pDC->SelectObject(&penr);
-			pDC->MoveTo(sx*i, rect.Height() - sy * m_histogramR[i]);
-			pDC->LineTo(sx*(i+1),rect.Height() - sy *m_histogramR[i+1]);
-
-			pDC->SelectObject(&peng);
-			pDC->MoveTo(sx*i, rect.Height() - sy * m_histogramG[i]);
-			pDC->LineTo(sx*(i + 1), rect.Height() - sy * m_histogramG[i + 1]);
-
-			pDC->SelectObject(&penb);
-			pDC->MoveTo(sx*i, rect.Height() - sy * m_histogramB[i]);
-			pDC->LineTo(sx*(i + 1), rect.Height() - sy * m_histogramB[i + 1]);
-		}
-		
+		draw_histogram(red, sx, syr, m_histogramR, pDC, rect);
+		draw_histogram(green, sx, syg, m_histogramG, pDC, rect);
+		draw_histogram(blue, sx, syb, m_histogramB, pDC, rect);
 		
 	}
 	else
@@ -388,22 +389,21 @@ HCURSOR CApplicationDlg::OnQueryDragIcon()
 
 void CApplicationDlg::OnFileOpen()
 {
-	if (m_pImage!=nullptr)
-	{
-		delete m_pImage;
-		m_pImage = nullptr;
-	}
+
 	CFileDialog file_dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Jpg Files (*.jpg)|*.jpg|Png Files (*.png)|*.png||"));
 
 	if (file_dlg.DoModal() == IDOK) {
 		path_name = file_dlg.GetPathName();
 		SetWindowText(file_dlg.GetFileTitle());
 		m_pImage =new CImage();
-		if (m_pImage->Load(path_name))
+		
+		if (m_pImage->Load(path_name)) //s_ok
 		{
 			delete m_pImage;
 			m_pImage = nullptr;
 		}
+
+		vypocet_histogram(m_pImage->GetHeight(), m_pImage->GetWidth());
 
 		Invalidate();
 		
