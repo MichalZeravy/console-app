@@ -101,6 +101,9 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_WM_SIZING()
 	ON_MESSAGE(WM_DRAW_IMAGE, OnDrawImage)
 	ON_MESSAGE(WM_DRAW_HISTOGRAM, OnDrawHistogram)
+	ON_COMMAND(ID_HISTOGRAM_RED, OnHistogramRed)	
+	ON_COMMAND(ID_HISTOGRAM_GREEN, OnHistogramGreen)
+	ON_COMMAND(ID_HISTOGRAM_BLUE, OnHistogramBlue)
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
@@ -156,6 +159,67 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 	}
 
 }
+
+
+void CApplicationDlg::OnHistogramRed()
+{
+	CMenu *pMenu = GetMenu();
+
+	if (pMenu->GetMenuState(ID_HISTOGRAM_RED, MF_BYCOMMAND | MF_CHECKED))
+	{
+		pMenu->GetSubMenu(1)->CheckMenuItem(ID_HISTOGRAM_RED, MF_BYCOMMAND | MF_UNCHECKED);
+
+		m_checkred = false;
+	}
+
+	else {
+		pMenu->GetSubMenu(1)->CheckMenuItem(ID_HISTOGRAM_RED, MF_BYCOMMAND | MF_CHECKED);
+
+		m_checkred = true;
+	}
+
+	Invalidate();
+}
+
+void CApplicationDlg::OnHistogramGreen()
+{
+	CMenu *pMenu = GetMenu();
+
+	if (pMenu->GetMenuState(ID_HISTOGRAM_GREEN, MF_BYCOMMAND | MF_CHECKED))
+	{
+		pMenu->GetSubMenu(1)->CheckMenuItem(ID_HISTOGRAM_GREEN, MF_BYCOMMAND | MF_UNCHECKED);
+
+		m_checkgreen = false;
+	}
+
+	else {
+		pMenu->GetSubMenu(1)->CheckMenuItem(ID_HISTOGRAM_GREEN, MF_BYCOMMAND | MF_CHECKED);
+
+		m_checkgreen = true;
+	}
+
+	Invalidate();
+}
+
+void CApplicationDlg::OnHistogramBlue()
+{
+	CMenu *pMenu = GetMenu();
+
+	if (pMenu->GetMenuState(ID_HISTOGRAM_BLUE, MF_BYCOMMAND | MF_CHECKED))
+	{
+		pMenu->GetSubMenu(1)->CheckMenuItem(ID_HISTOGRAM_BLUE, MF_BYCOMMAND | MF_UNCHECKED);
+
+		m_checkblue = false;
+	}
+
+	else {
+		pMenu->GetSubMenu(1)->CheckMenuItem(ID_HISTOGRAM_BLUE, MF_BYCOMMAND | MF_CHECKED);
+
+		m_checkblue = true;
+	}
+
+	Invalidate();
+}
 		
 void CApplicationDlg::vypocet_histogram(int h, int w)
 {
@@ -191,12 +255,12 @@ void CApplicationDlg::vypocet_histogram(int h, int w)
 	}
 }
 
+
 void CApplicationDlg::draw_histogram(COLORREF color, float sx, float sy, int *pole, CDC *pDC, CRect rect)
-{
-		
+{		
 	for (int i = 0; i < 255; i++)
 	{
-		pDC->FillSolidRect(sx*i,rect.Height()-sy*pole[i],1,sy*pole[i], color);	
+		pDC->FillSolidRect(sx*i,rect.Height()-sy*log10(pole[i]),sx + 1,sy*log10(pole[i]), color);	
 
 	}
 }
@@ -221,9 +285,6 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		bmDC.CreateCompatibleDC(pDC);
 		bmp.GetBitmap(&bi);
 		m_pImage->Attach((HBITMAP)bmp.Detach());
-
-		
-
 		
 		CPen penr(PS_SOLID, 1, RGB(255, 0, 0));
 		CPen peng(PS_SOLID, 1, RGB(0, 255, 0));
@@ -255,18 +316,26 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		}*/
 	
 		sx =(float) rect.Width()/256 ;
-		syr = (float) rect.Height() / maxr;
-		syg = (float)rect.Height() / maxg;
-		syb = (float)rect.Height() / maxb;
+		syr = (float) rect.Height() / log10(maxr);
+		syg = (float)rect.Height() / log10(maxg);
+		syb = (float)rect.Height() / log10(maxb);
 
 		COLORREF red=RGB(255, 0, 0);
 		COLORREF green=RGB(0, 255, 0);
 		COLORREF blue=RGB(0, 0, 255);
-
-		draw_histogram(red, sx, syr, m_histogramR, pDC, rect);
-		draw_histogram(green, sx, syg, m_histogramG, pDC, rect);
-		draw_histogram(blue, sx, syb, m_histogramB, pDC, rect);
-		
+		if (m_checkred == true)
+		{
+			draw_histogram(red, sx, syr, m_histogramR, pDC, rect);
+		}
+		if (m_checkgreen == true)
+		{
+			draw_histogram(green, sx, syg, m_histogramG, pDC, rect);
+		}
+		if (m_checkblue == true)
+		{
+			draw_histogram(blue, sx, syb, m_histogramB, pDC, rect);
+		}		
+				
 	}
 	else
 	{
@@ -420,9 +489,7 @@ void CApplicationDlg::OnUpdateFileOpen(CCmdUI *pCmdUI)
 
 
 void CApplicationDlg::OnFileClose()
-{
-
-	
+{	
 	if (m_pImage != nullptr)
 	{
 		delete m_pImage;
@@ -437,3 +504,5 @@ void CApplicationDlg::OnUpdateFileClose(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(TRUE);
 }
+
+
