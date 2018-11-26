@@ -63,6 +63,7 @@ protected:
 	BOOL m_checkred=true;
 	BOOL m_checkgreen=true;
 	BOOL m_checkblue=true;
+	int tmp[255] = { 0 };
 
 public:
 	afx_msg void OnFileOpen();

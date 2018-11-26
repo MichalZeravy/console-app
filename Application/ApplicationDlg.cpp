@@ -79,6 +79,11 @@ CApplicationDlg::CApplicationDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_APPLICATION_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+	for (int i = 0; i <= 255; i++)
+	{
+		tmp[i] = i;
+	}
+	
 }
 
 void CApplicationDlg::DoDataExchange(CDataExchange* pDX)
@@ -253,6 +258,7 @@ void CApplicationDlg::vypocet_histogram(int h, int w)
 		}
 		
 	}
+	
 }
 
 
@@ -270,26 +276,31 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	LPDRAWITEMSTRUCT lpDI = (LPDRAWITEMSTRUCT)wParam;
 
 	CDC * pDC = CDC::FromHandle(lpDI->hDC);
+	CRect rect(lpDI->rcItem);
+	CBitmap bmp;
+	CDC bmDC;
+	BITMAP  bi;
+	float maxr, maxg, maxb, maxh = 0;
+	float sx,sy, syr, syb, syg;
+
+	sx = (float)rect.Width() / 256;
+	sy = (float)rect.Height() / 256;
+
+	COLORREF red = RGB(255, 0, 0);
+	COLORREF green = RGB(0, 255, 0);
+	COLORREF blue = RGB(0, 0, 255);
 
 	//DRAW BITMAP
 	if (m_pImage != nullptr) {
 		
-		CBitmap bmp;
-		CDC bmDC;
-		BITMAP  bi;
-		CRect rect(lpDI->rcItem);
-		float maxr, maxg, maxb, maxh=0;
-		float sx, syr,syb,syg;
+		
 
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
 		bmp.GetBitmap(&bi);
 		m_pImage->Attach((HBITMAP)bmp.Detach());
 		
-		CPen penr(PS_SOLID, 1, RGB(255, 0, 0));
-		CPen peng(PS_SOLID, 1, RGB(0, 255, 0));
-		CPen penb(PS_SOLID, 1, RGB(0, 0, 255));
-		
+			
 		maxr = m_histogramR[0];
 		maxg = m_histogramG[0];
 		maxb = m_histogramB[0];
@@ -315,14 +326,12 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 				maxh = maxb;
 		}*/
 	
-		sx =(float) rect.Width()/256 ;
+		
 		syr = (float) rect.Height() / log10(maxr);
 		syg = (float)rect.Height() / log10(maxg);
 		syb = (float)rect.Height() / log10(maxb);
 
-		COLORREF red=RGB(255, 0, 0);
-		COLORREF green=RGB(0, 255, 0);
-		COLORREF blue=RGB(0, 0, 255);
+		
 		if (m_checkred == true)
 		{
 			draw_histogram(red, sx, syr, m_histogramR, pDC, rect);
@@ -339,13 +348,11 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	}
 	else
 	{
-		CRect rect(lpDI->rcItem);
-		CBrush brush;
-		brush.CreateSolidBrush(RGB(255, 255, 255));
+		for (int i = 0; i < 255; i++)
+		{
+			pDC->FillSolidRect(sx*i, rect.Height() -sy* tmp[i], sx + 1, sy*tmp[i], green);
 
-		pDC->FillRect(&rect, &brush);
-
-		DeleteObject(brush);
+		}
 
 	}
 	
