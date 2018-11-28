@@ -229,44 +229,36 @@ void CApplicationDlg::OnHistogramBlue()
 void CApplicationDlg::vypocet_histogram(int h, int w)
 {
 	if (m_pImage != nullptr) {
-
-		int *Redcolor = new int[(h*w)];
-		int *Greencolor = new int[(h*w)];
-		int *Bluecolor = new int[(h*w)];
+	
 		COLORREF ccolor = 0;
 		BYTE bcolor;
-		
-		for (int i = 0; i < w; i++)
-			for (int j = 0; j < h; j++)
-			{// Here you get the RGB value
-				ccolor=m_pImage->GetPixel(i, j);
-				// In this way you get one byte for each color
-				bcolor = GetRValue(ccolor);
-				Redcolor[(w*j)+i] = (int)bcolor;
-				bcolor = GetGValue(ccolor);
-				Greencolor[(w*j) + i] = (int)bcolor;
-				bcolor = GetBValue(ccolor);
-				Bluecolor[(w*j) + i] = (int)bcolor;
 
-			}
-
-		for (int i = 0; i < h*w; i++)
-		{
-			m_histogramR[Redcolor[i]]++;
-			m_histogramG[Greencolor[i]]++;
-			m_histogramB[Bluecolor[i]]++;
-		}
+		BYTE *pbyteImage = (BYTE *)m_pImage->GetBits();
+		int nPitch = m_pImage->GetPitch();
 		
+		for (int i = 0; i < h; i++)
+			for (int j = 0; j < w; j++)
+			{
+				int tmp1 = *(pbyteImage + nPitch * i + 3 * j + 0);
+				m_histogramR[tmp1]++;
+
+				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 1);
+				m_histogramG[tmp1]++;
+
+				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 2);
+				m_histogramB[tmp1]++;
+
+			}			
 	}
 	
 }
 
 
-void CApplicationDlg::draw_histogram(COLORREF color, float sx, float sy, int *pole, CDC *pDC, CRect rect)
+void CApplicationDlg::draw_histogram(COLORREF color,float min, float sx, float sy, int *pole, CDC *pDC, CRect rect)
 {		
 	for (int i = 0; i < 255; i++)
 	{
-		pDC->FillSolidRect(sx*i,rect.Height()-sy*log10(pole[i]),sx + 1,sy*log10(pole[i]), color);	
+		pDC->FillSolidRect(sx*i,rect.Height()-sy*pole[i] ,sx + 1,sy*pole[i], color);
 
 	}
 }
@@ -280,7 +272,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	CBitmap bmp;
 	CDC bmDC;
 	BITMAP  bi;
-	float maxr, maxg, maxb, maxh = 0;
+	float minr,ming,minb, maxr, maxg, maxb, maxh = 0;
 	float sx,sy, syr, syb, syg;
 
 	sx = (float)rect.Width() / 256;
@@ -291,16 +283,17 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	COLORREF blue = RGB(0, 0, 255);
 
 	//DRAW BITMAP
-	if (m_pImage != nullptr) {
-		
-		
-
+	if (m_pImage != nullptr) 
+	{
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
 		bmp.GetBitmap(&bi);
 		m_pImage->Attach((HBITMAP)bmp.Detach());
 		
-			
+		minr = m_histogramR[0];
+		ming = m_histogramG[0];
+		minb = m_histogramB[0];
+
 		maxr = m_histogramR[0];
 		maxg = m_histogramG[0];
 		maxb = m_histogramB[0];
@@ -315,6 +308,15 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 
 				if (maxb < m_histogramB[i])
 					maxb = m_histogramB[i];
+
+				if (minr > m_histogramR[i])
+					minr = m_histogramR[i];
+
+				if (ming > m_histogramG[i])
+					ming = m_histogramG[i];
+
+				if (minb > m_histogramB[i])
+					minb = m_histogramB[i];
 			}
 		/*if ((maxh < maxr) || (maxh < maxg) || (maxh < maxb))
 		{
@@ -327,22 +329,22 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		}*/
 	
 		
-		syr = (float) rect.Height() / log10(maxr);
-		syg = (float)rect.Height() / log10(maxg);
-		syb = (float)rect.Height() / log10(maxb);
+		syr = (float) rect.Height() / maxr;
+		syg = (float)rect.Height() / maxg;
+		syb = (float)rect.Height() /maxb;
 
 		
 		if (m_checkred == true)
 		{
-			draw_histogram(red, sx, syr, m_histogramR, pDC, rect);
+			draw_histogram(red, minr, sx, syr, m_histogramR, pDC, rect);
 		}
 		if (m_checkgreen == true)
 		{
-			draw_histogram(green, sx, syg, m_histogramG, pDC, rect);
+			draw_histogram(green, ming, sx, syg, m_histogramG, pDC, rect);
 		}
 		if (m_checkblue == true)
 		{
-			draw_histogram(blue, sx, syb, m_histogramB, pDC, rect);
+			draw_histogram(blue, minb, sx, syb, m_histogramB, pDC, rect);
 		}		
 				
 	}
@@ -350,7 +352,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	{
 		for (int i = 0; i < 255; i++)
 		{
-			pDC->FillSolidRect(sx*i, rect.Height() -sy* tmp[i], sx + 1, sy*tmp[i], green);
+			pDC->FillSolidRect( sx*i, rect.Height() -sy* tmp[i], sx + 1, sy*tmp[i], green);
 
 		}
 
@@ -465,6 +467,11 @@ HCURSOR CApplicationDlg::OnQueryDragIcon()
 
 void CApplicationDlg::OnFileOpen()
 {
+	if (m_pImage != nullptr)
+	{
+		delete m_pImage;
+		m_pImage = nullptr;
+	}
 
 	CFileDialog file_dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Jpg Files (*.jpg)|*.jpg|Png Files (*.png)|*.png||"));
 

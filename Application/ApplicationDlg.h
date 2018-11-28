@@ -59,10 +59,10 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	int m_histogramR[255] = {0};
 	int m_histogramG[255] = {0};
-	int m_histogramB[255] = {0};
-	BOOL m_checkred=true;
-	BOOL m_checkgreen=true;
-	BOOL m_checkblue=true;
+	int m_histogramB[255] = {0};	
+	BOOL m_checkred=false;
+	BOOL m_checkgreen=false;
+	BOOL m_checkblue=false;
 	int tmp[255] = { 0 };
 
 public:
@@ -76,7 +76,7 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnDestroy();
 	void vypocet_histogram(int h, int w);
-	afx_msg void draw_histogram(COLORREF color, float sx, float sy, int *pole, CDC *pDC, CRect rect);
+	afx_msg void draw_histogram(COLORREF color,float min, float sx, float sy, int *pole, CDC *pDC, CRect rect);
 	afx_msg void OnHistogramRed();
 	afx_msg void OnHistogramGreen();
 	afx_msg void OnHistogramBlue();
