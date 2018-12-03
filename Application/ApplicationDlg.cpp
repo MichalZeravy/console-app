@@ -239,13 +239,13 @@ void CApplicationDlg::vypocet_histogram(int h, int w)
 		for (int i = 0; i < h; i++)
 			for (int j = 0; j < w; j++)
 			{
-				int tmp1 = *(pbyteImage + nPitch * i + 3 * j + 0);
+				int tmp1 = *(pbyteImage + nPitch * i + 3 * j + 2);
 				m_histogramR[tmp1]++;
 
 				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 1);
 				m_histogramG[tmp1]++;
 
-				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 2);
+				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 0);
 				m_histogramB[tmp1]++;
 
 			}			
@@ -258,7 +258,7 @@ void CApplicationDlg::draw_histogram(COLORREF color,float min, float sx, float s
 {		
 	for (int i = 0; i < 255; i++)
 	{
-		pDC->FillSolidRect(sx*i,rect.Height()-sy*pole[i] ,sx + 1,sy*pole[i], color);
+		pDC->FillSolidRect(sx*i,rect.Height()-sy*(pole[i]-min) ,sx + 1,sy*(pole[i]-min), color);
 
 	}
 }
@@ -329,9 +329,9 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		}*/
 	
 		
-		syr = (float) rect.Height() / maxr;
-		syg = (float)rect.Height() / maxg;
-		syb = (float)rect.Height() /maxb;
+		syr = (float) rect.Height() / (maxr-minr);
+		syg = (float)rect.Height() / (maxg-ming);
+		syb = (float)rect.Height() /(maxb-minb);
 
 		
 		if (m_checkred == true)
