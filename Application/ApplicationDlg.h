@@ -29,6 +29,7 @@ public:
 	{
 		WM_DRAW_IMAGE = (WM_USER + 1),
 		WM_DRAW_HISTOGRAM
+				
 	};
 
 	CApplicationDlg(CWnd* pParent = NULL);	// standard constructor
@@ -64,6 +65,11 @@ protected:
 	BOOL m_checkgreen=false;
 	BOOL m_checkblue=false;
 	int tmp[255] = { 0 };
+	BOOL b=false;
+	BYTE *pbyteImage;
+	float w, h;
+	int nPitch;
+	UINT_PTR id=0;
 
 public:
 	afx_msg void OnFileOpen();
@@ -75,11 +81,12 @@ public:
 	afx_msg LRESULT OnDrawHistogram(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnDestroy();
-	void vypocet_histogram(int h, int w);
+	void vypocet_histogram();
 	afx_msg void draw_histogram(COLORREF color,float min, float sx, float sy, int *pole, CDC *pDC, CRect rect);
 	afx_msg void OnHistogramRed();
 	afx_msg void OnHistogramGreen();
 	afx_msg void OnHistogramBlue();
+	afx_msg void OnTimer(UINT_PTR id);
 
 protected:
 	CStaticImage m_ctrlImage;

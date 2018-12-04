@@ -10,6 +10,7 @@
 #include <tuple>
 #include <vector>
 #include <Gdiplus.h>
+#include <thread>
 
 
 #ifdef _DEBUG
@@ -104,6 +105,7 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_WM_CLOSE()
 	ON_WM_SIZE()
 	ON_WM_SIZING()
+	ON_WM_TIMER()
 	ON_MESSAGE(WM_DRAW_IMAGE, OnDrawImage)
 	ON_MESSAGE(WM_DRAW_HISTOGRAM, OnDrawHistogram)
 	ON_COMMAND(ID_HISTOGRAM_RED, OnHistogramRed)	
@@ -165,6 +167,14 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 }
 
+void CApplicationDlg::OnTimer(UINT_PTR id)
+{
+	if (b == true)
+	{
+		KillTimer(id);
+		Invalidate();
+	}
+}
 
 void CApplicationDlg::OnHistogramRed()
 {
@@ -226,18 +236,15 @@ void CApplicationDlg::OnHistogramBlue()
 	Invalidate();
 }
 		
-void CApplicationDlg::vypocet_histogram(int h, int w)
+void CApplicationDlg::vypocet_histogram()
 {
 	if (m_pImage != nullptr) {
 	
 		COLORREF ccolor = 0;
 		BYTE bcolor;
-
-		BYTE *pbyteImage = (BYTE *)m_pImage->GetBits();
-		int nPitch = m_pImage->GetPitch();
 		
-		for (int i = 0; i < h; i++)
-			for (int j = 0; j < w; j++)
+		for (int i = 0; i <h; i++)
+			for (int j = 0; j <w; j++)
 			{
 				int tmp1 = *(pbyteImage + nPitch * i + 3 * j + 2);
 				m_histogramR[tmp1]++;
@@ -248,8 +255,10 @@ void CApplicationDlg::vypocet_histogram(int h, int w)
 				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 0);
 				m_histogramB[tmp1]++;
 
-			}			
+			}	
+
 	}
+	b = true;
 	
 }
 
@@ -283,7 +292,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	COLORREF blue = RGB(0, 0, 255);
 
 	//DRAW BITMAP
-	if (m_pImage != nullptr) 
+	if (m_pImage != nullptr && b==true) 
 	{
 		bmp.Attach(m_pImage->Detach());
 		bmDC.CreateCompatibleDC(pDC);
@@ -329,9 +338,10 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		}*/
 	
 		
-		syr = (float) rect.Height() / (maxr-minr);
+		syr = (float)rect.Height() / (maxr-minr);
 		syg = (float)rect.Height() / (maxg-ming);
 		syb = (float)rect.Height() /(maxb-minb);
+
 
 		
 		if (m_checkred == true)
@@ -472,7 +482,8 @@ void CApplicationDlg::OnFileOpen()
 		delete m_pImage;
 		m_pImage = nullptr;
 	}
-
+	
+	//dorobit rozmazanie obrazka 
 	CFileDialog file_dlg(TRUE, NULL, NULL, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, _T("Jpg Files (*.jpg)|*.jpg|Png Files (*.png)|*.png||"));
 
 	if (file_dlg.DoModal() == IDOK) {
@@ -486,7 +497,17 @@ void CApplicationDlg::OnFileOpen()
 			m_pImage = nullptr;
 		}
 
-		vypocet_histogram(m_pImage->GetHeight(), m_pImage->GetWidth());
+		pbyteImage = (BYTE *)m_pImage->GetBits();
+		nPitch = m_pImage->GetPitch();
+		w = m_pImage->GetWidth();
+		h = m_pImage->GetHeight();
+
+		b = false;
+		id = SetTimer(1, 100,nullptr);
+		std::thread t(&CApplicationDlg::vypocet_histogram, this);
+		t.detach();
+						
+		//vypocet_histogram(m_pImage->GetHeight(), m_pImage->GetWidth());
 
 		Invalidate();
 		
