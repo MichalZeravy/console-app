@@ -130,7 +130,7 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 	CDC * pDC = CDC::FromHandle(lpDI->hDC);
 
 	//DRAW BITMAP
-	if (m_pImage != nullptr) {
+	if (m_pImage1 != nullptr) {
 		CBitmap bmp;
 		CDC bmDC;
 		CBitmap *pOldbmp;
@@ -147,7 +147,7 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 			m_pImage = m_pImage1;
 		}
 		
-		bmp.Attach(m_pImage2->Detach());		
+		bmp.Attach(m_pImage->Detach());		
 		bmDC.CreateCompatibleDC(pDC);
 
 		CRect r(lpDI->rcItem);
@@ -174,7 +174,7 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		pDC->StretchBlt(r.left + (r.Width() - nWidth) / 2, r.top + (r.Height() - nHeight) / 2, nWidth, nHeight, &bmDC, 0, 0, bi.bmWidth, bi.bmHeight, SRCCOPY);
 		bmDC.SelectObject(pOldbmp);
-		m_pImage2->Attach((HBITMAP)bmp.Detach());
+		m_pImage->Attach((HBITMAP)bmp.Detach());
 		
 		
 
