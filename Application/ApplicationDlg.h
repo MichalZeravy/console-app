@@ -56,19 +56,24 @@ protected:
 	afx_msg void OnPaint();
 	CString path_name;
 	CImage *m_pImage = nullptr;
+	CImage *m_pImage1 = nullptr;
+	CImage *m_pImage2 = nullptr;
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 	int m_histogramR[255] = {0};
 	int m_histogramG[255] = {0};
 	int m_histogramB[255] = {0};	
+	BOOL m_rozmazanie = false;
 	BOOL m_checkred=false;
 	BOOL m_checkgreen=false;
 	BOOL m_checkblue=false;
 	int tmp[255] = { 0 };
 	BOOL b=false;
 	BYTE *pbyteImage;
+	BYTE *pbyteImage1;
 	float w, h;
 	int nPitch;
+	int nPitch1;
 	UINT_PTR id=0;
 
 public:
@@ -86,7 +91,9 @@ public:
 	afx_msg void OnHistogramRed();
 	afx_msg void OnHistogramGreen();
 	afx_msg void OnHistogramBlue();
+	afx_msg void OnEditRozmazanie();
 	afx_msg void OnTimer(UINT_PTR id);
+	void Blur();
 
 protected:
 	CStaticImage m_ctrlImage;

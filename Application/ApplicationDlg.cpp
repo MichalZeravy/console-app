@@ -13,6 +13,8 @@
 #include <thread>
 
 
+
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -111,6 +113,7 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_COMMAND(ID_HISTOGRAM_RED, OnHistogramRed)	
 	ON_COMMAND(ID_HISTOGRAM_GREEN, OnHistogramGreen)
 	ON_COMMAND(ID_HISTOGRAM_BLUE, OnHistogramBlue)
+	ON_COMMAND(ID_EDIT_ROZMAZANIE, OnEditRozmazanie)
 	ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
@@ -132,14 +135,27 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 		CDC bmDC;
 		CBitmap *pOldbmp;
 		BITMAP  bi;
+		//m_pImage2 = new CImage();
 
-		bmp.Attach(m_pImage->Detach());
+		if (m_rozmazanie == true)
+		{
+			Blur();
+			m_pImage = m_pImage2;
+		}
+		else
+		{
+			m_pImage = m_pImage1;
+		}
+		
+		bmp.Attach(m_pImage2->Detach());		
 		bmDC.CreateCompatibleDC(pDC);
 
 		CRect r(lpDI->rcItem);
 
 		pOldbmp = bmDC.SelectObject(&bmp);
 		bmp.GetBitmap(&bi);
+
+		
 
 		pDC->FillSolidRect(r.left, r.top, r.Width(), r.Height(), RGB(255, 255, 255));
 
@@ -158,14 +174,35 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		pDC->StretchBlt(r.left + (r.Width() - nWidth) / 2, r.top + (r.Height() - nHeight) / 2, nWidth, nHeight, &bmDC, 0, 0, bi.bmWidth, bi.bmHeight, SRCCOPY);
 		bmDC.SelectObject(pOldbmp);
-
-
-		m_pImage->Attach((HBITMAP)bmp.Detach());
+		m_pImage2->Attach((HBITMAP)bmp.Detach());
+		
+		
 
 		return S_OK;
 	}
 
 }
+
+void CApplicationDlg::OnEditRozmazanie()
+{
+	CMenu *pMenu = GetMenu();
+
+	if (pMenu->GetMenuState(ID_EDIT_ROZMAZANIE, MF_BYCOMMAND | MF_CHECKED))
+	{
+		pMenu->GetSubMenu(2)->CheckMenuItem(ID_EDIT_ROZMAZANIE, MF_BYCOMMAND | MF_UNCHECKED);
+
+		m_rozmazanie = false;
+	}
+
+	else {
+		pMenu->GetSubMenu(2)->CheckMenuItem(ID_EDIT_ROZMAZANIE, MF_BYCOMMAND | MF_CHECKED);
+
+		m_rozmazanie = true;
+	}
+
+	Invalidate();
+}
+
 
 void CApplicationDlg::OnTimer(UINT_PTR id)
 {
@@ -299,6 +336,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 		bmp.GetBitmap(&bi);
 		m_pImage->Attach((HBITMAP)bmp.Detach());
 		
+		
 		minr = m_histogramR[0];
 		ming = m_histogramG[0];
 		minb = m_histogramB[0];
@@ -377,6 +415,39 @@ void CApplicationDlg::OnClose()
 {
 
 	EndDialog(0);
+}
+
+void CApplicationDlg::Blur()
+{
+	//COLORREF total;
+	//int filter[] = { 1,4,1,4,-20,4,1,4,1 };
+
+	/*for (int i = 0; i<w; i++)
+		for (int j = 0; j<h; j++)
+		{
+			total = m_pImage->GetPixel(i,j);		
+		//	m_pImage1->SetPixel(i, j, total);
+
+		}*/
+	
+	
+	for (int i = 1; i <h; i++)
+		for (int j = 1; j <w; j++)
+		{
+			int tmp1 =(*(pbyteImage + nPitch * (i-1) + 3 * j + 2)+ *(pbyteImage + nPitch * (i + 1) + 3 * j  + 2)
+				+ *(pbyteImage + nPitch * i  + 3 * (j - 1) + 2)+ *(pbyteImage + nPitch * i  + 3 * (j + 1) + 2))/4;
+			*(pbyteImage1 + nPitch1 * i + 3 * j + 2) = tmp1;
+			
+
+			tmp1 = (*(pbyteImage + nPitch * (i - 1) + 3 * j + 1) + *(pbyteImage + nPitch * (i + 1) + 3 * j  + 1)
+				+ *(pbyteImage + nPitch * i + 3 *( j - 1) + 1) + *(pbyteImage + nPitch * i + 3 * (j + 1) + 1)) / 4;
+			*(pbyteImage1 + nPitch1 * i + 3 * j + 1) = tmp1;
+
+			tmp1 = (*(pbyteImage + nPitch * (i - 1) + 3 * j + 0) + *(pbyteImage + nPitch * (i + 1) + 3 * j + 0)
+				+ *(pbyteImage + nPitch * i + 3 * (j - 1) + 0) + *(pbyteImage + nPitch * i + 3 * (j + 1) + 0)) / 4;
+			*(pbyteImage1 + nPitch1 * i + 3 * j + 0) = tmp1;
+
+		}
 }
 
 BOOL CApplicationDlg::OnInitDialog()
@@ -477,10 +548,10 @@ HCURSOR CApplicationDlg::OnQueryDragIcon()
 
 void CApplicationDlg::OnFileOpen()
 {
-	if (m_pImage != nullptr)
+	if (m_pImage1 != nullptr)
 	{
-		delete m_pImage;
-		m_pImage = nullptr;
+		delete m_pImage1;
+		m_pImage1= nullptr;
 	}
 	
 	//dorobit rozmazanie obrazka 
@@ -489,19 +560,30 @@ void CApplicationDlg::OnFileOpen()
 	if (file_dlg.DoModal() == IDOK) {
 		path_name = file_dlg.GetPathName();
 		SetWindowText(file_dlg.GetFileTitle());
-		m_pImage =new CImage();
+		m_pImage2 =new CImage();
+		m_pImage1 = new CImage();
 		
-		if (m_pImage->Load(path_name)) //s_ok
+		if (m_pImage1->Load(path_name)) //s_ok
 		{
-			delete m_pImage;
-			m_pImage = nullptr;
+			delete m_pImage1;
+			m_pImage1 = nullptr;
 		}
 
-		pbyteImage = (BYTE *)m_pImage->GetBits();
-		nPitch = m_pImage->GetPitch();
-		w = m_pImage->GetWidth();
-		h = m_pImage->GetHeight();
+		m_pImage2->Create(m_pImage1->GetWidth(), m_pImage1->GetHeight(), m_pImage1->GetBPP(),0);
+		m_pImage1->BitBlt(m_pImage2->GetDC(), 0, 0, SRCCOPY);
+		m_pImage2->ReleaseDC();
 
+		pbyteImage = (BYTE *)m_pImage1->GetBits();
+		nPitch = m_pImage1->GetPitch();
+
+		pbyteImage1 = (BYTE *)m_pImage2->GetBits();
+		nPitch1 = m_pImage2->GetPitch();
+	
+		w = m_pImage1->GetWidth();
+		h = m_pImage1->GetHeight();
+
+		m_pImage = m_pImage1;
+		
 		b = false;
 		id = SetTimer(1, 100,nullptr);
 		std::thread t(&CApplicationDlg::vypocet_histogram, this);
