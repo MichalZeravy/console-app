@@ -139,8 +139,15 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		if (m_rozmazanie == true)
 		{
-			Blur();
-			m_pImage = m_pImage2;
+			std::thread t1(&CApplicationDlg::Blur, this);
+			t1.detach();
+			if (m_rozmazanie_zbehlo == true)
+			{
+				m_pImage = m_pImage2;
+			}
+			std::thread t2(&CApplicationDlg::vypocet_histogram, this);
+			t2.detach();
+			m_rozmazanie_zbehlo == false;
 		}
 		else
 		{
@@ -279,20 +286,42 @@ void CApplicationDlg::vypocet_histogram()
 	
 		COLORREF ccolor = 0;
 		BYTE bcolor;
+
+		if (m_rozmazanie_zbehlo == true)
+		{
+			for (int i = 0; i <h; i++)
+				for (int j = 0; j <w; j++)
+				{
+					int tmp1 = *(pbyteImage1 + nPitch1 * i + 3 * j + 2);
+					m_histogramR[tmp1]++;
+
+					tmp1 = *(pbyteImage1 + nPitch1 * i + 3 * j + 1);
+					m_histogramG[tmp1]++;
+
+					tmp1 = *(pbyteImage1 + nPitch1 * i + 3 * j + 0);
+					m_histogramB[tmp1]++;
+
+				}
+		}
+		else
+		{
+			for (int i = 0; i <h; i++)
+				for (int j = 0; j <w; j++)
+				{
+					int tmp1 = *(pbyteImage + nPitch * i + 3 * j + 2);
+					m_histogramR[tmp1]++;
+
+					tmp1 = *(pbyteImage + nPitch * i + 3 * j + 1);
+					m_histogramG[tmp1]++;
+
+					tmp1 = *(pbyteImage + nPitch * i + 3 * j + 0);
+					m_histogramB[tmp1]++;
+
+				}
+
+		}
 		
-		for (int i = 0; i <h; i++)
-			for (int j = 0; j <w; j++)
-			{
-				int tmp1 = *(pbyteImage + nPitch * i + 3 * j + 2);
-				m_histogramR[tmp1]++;
-
-				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 1);
-				m_histogramG[tmp1]++;
-
-				tmp1 = *(pbyteImage + nPitch * i + 3 * j + 0);
-				m_histogramB[tmp1]++;
-
-			}	
+		
 
 	}
 	b = true;
@@ -419,17 +448,6 @@ void CApplicationDlg::OnClose()
 
 void CApplicationDlg::Blur()
 {
-	//COLORREF total;
-	//int filter[] = { 1,4,1,4,-20,4,1,4,1 };
-
-	/*for (int i = 0; i<w; i++)
-		for (int j = 0; j<h; j++)
-		{
-			total = m_pImage->GetPixel(i,j);		
-		//	m_pImage1->SetPixel(i, j, total);
-
-		}*/
-	
 	
 	for (int i = 1; i <h; i++)
 		for (int j = 1; j <w; j++)
@@ -448,6 +466,8 @@ void CApplicationDlg::Blur()
 			*(pbyteImage1 + nPitch1 * i + 3 * j + 0) = tmp1;
 
 		}
+	m_rozmazanie_zbehlo = true;
+
 }
 
 BOOL CApplicationDlg::OnInitDialog()

@@ -67,6 +67,7 @@ protected:
 	BOOL m_checkred=false;
 	BOOL m_checkgreen=false;
 	BOOL m_checkblue=false;
+	BOOL m_rozmazanie_zbehlo = false;
 	int tmp[255] = { 0 };
 	BOOL b=false;
 	BYTE *pbyteImage;
